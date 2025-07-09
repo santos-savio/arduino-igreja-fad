@@ -69,7 +69,7 @@ void setup() {
   Ethernet.begin(mac, ip); // Inicializa Ethernet
   server.begin();
 
-  String ipAtual = "10.31.17.13"; // Atualize conforme necessário
+  String ipAtual = "10.31.17.14:23"; // Atualize conforme necessário
 
   Serial.println("\nIp atual: " + ipAtual);
   Serial.println("@savio.job \n");
@@ -107,6 +107,7 @@ void setup() {
     }
 
   pinMode(ledPin, OUTPUT); // Inicializa Led 13
+  inputString.reserve(200);
 }
 void loop() {
 
@@ -115,8 +116,7 @@ void loop() {
     count2++;
   }
 
-  // if (count == 250000) {
-    if (count2 == info_speed) {
+  if (count2 == info_speed) {
     // Lê o sensor e exibe as informações somente a cada 2000 iterações do loop, sem travar a execução
     int h = dht.readHumidity();
     int t = dht.readTemperature();
@@ -126,46 +126,162 @@ void loop() {
     if (isnan(h) || isnan(t) || isnan(f)) {
       Serial.println("Failed to read from DHT sensor!");
       return;
-    }
-
-    // Compute heat index in Celsius (isFahreheit = false)
-    int hic = dht.computeHeatIndex(t, h, false);
-
-    // Criando as strings antes de exibi-las
-    String humidityStr = "Humidade: " + String(h) + "%      ";
-    String tempStr = "Temperat.: " + String(t) + "C"         ;
-    String heatIndexStr = "Sen. term.: " + String(hic) + "C       ";
-
-    // Exibindo as strings completas
-    if (tipoRetornoSensor == 0) {
-      Serial.println(humidityStr);
-      lcd.setCursor(0, 1);
-      lcd.print(humidityStr);
-      tipoRetornoSensor++;
-
-    } else if (tipoRetornoSensor == 1) {
-      Serial.println(tempStr);
-      lcd.setCursor(0, 1);
-      lcd.print(tempStr);
-      tipoRetornoSensor++;
-
-    } else if (tipoRetornoSensor == 2) {
-      Serial.println(heatIndexStr);
-      lcd.setCursor(0, 1);
-      lcd.print(heatIndexStr);
-      tipoRetornoSensor++;
-    }
-
-    else {
-      lcd.setCursor(0, 1);
-      lcd.print("@savio.job      ");
-      tipoRetornoSensor = 0;
-      Serial.println("\n --------------------------------\n");
-    }
-
-    count = 0;
-    count2 = 0;
   }
+
+  // Compute heat index in Celsius (isFahreheit = false)
+  int hic = dht.computeHeatIndex(t, h, false);
+
+  // Criando as strings antes de exibi-las
+  String humidityStr = "Humidade: " + String(h) + "%      ";
+  String tempStr = "Temperat.: " + String(t) + "C"         ;
+  String heatIndexStr = "Sen. term.: " + String(hic) + "C       ";
+
+  // Exibindo as strings completas
+  if (tipoRetornoSensor == 0) {
+    Serial.println(humidityStr);
+    lcd.setCursor(0, 1);
+    lcd.print(humidityStr);
+    tipoRetornoSensor++;
+
+  } else if (tipoRetornoSensor == 1) {
+    Serial.println(tempStr);
+    lcd.setCursor(0, 1);
+    lcd.print(tempStr);
+    tipoRetornoSensor++;
+
+  } else if (tipoRetornoSensor == 2) {
+    Serial.println(heatIndexStr);
+    lcd.setCursor(0, 1);
+    lcd.print(heatIndexStr);
+    tipoRetornoSensor++;
+  }
+
+  else {
+    lcd.setCursor(0, 1);
+    lcd.print("@savio.job      ");
+    tipoRetornoSensor = 0;
+    Serial.println("\n --------------------------------\n");
+  }
+
+  count = 0;
+  count2 = 0;
+}
+
+  if (stringComplete) {
+
+    if (inputString == "teste\r\n") {
+      Serial.println("Ação ativada.\n");
+    }
+    
+      if (inputString == "cseco\r\n") {
+      Serial3.print("Estado dos contatos Secos :");  
+      Serial3.print(digitalRead(contatoseco1));
+      Serial3.print(digitalRead(contatoseco2));
+      Serial3.print(digitalRead(contatoseco3));
+      Serial3.print(digitalRead(contatoseco4));
+      Serial3.print(digitalRead(contatoseco5));
+      Serial3.print(digitalRead(contatoseco6));
+      Serial3.print(digitalRead(contatoseco7));
+      Serial3.println(digitalRead(contatoseco8));
+      Serial3.println();
+      
+    }
+    
+     if (inputString == "temp\r\n") {
+      Serial3.print("Temperatura: ");
+      Serial3.println(dht.readTemperature());
+      Serial3.print("Umidade: ");
+      Serial3.println(dht.readHumidity());
+      
+    }
+    
+    if (inputString == "r0\r\n") {
+      Serial3.println("ligando rele0");
+      digitalWrite(rele0, !digitalRead(rele0));
+    }
+
+    if (inputString == "r1\r\n") {
+      Serial3.println("ligando rele1");
+      digitalWrite(rele1, !digitalRead(rele1));
+    }
+
+    if (inputString == "r2\r\n") {
+      Serial3.println("ligando rele2");
+      digitalWrite(rele2, !digitalRead(rele2));
+    }
+    
+
+
+    if (inputString == "r3\r\n") {
+      Serial3.println("ligando rele3");
+      digitalWrite(rele3, !digitalRead(rele3));
+    }
+
+    
+     if (inputString == "r4\r\n") {
+      Serial3.println("ligando rele4");
+      digitalWrite(rele4, !digitalRead(rele4));
+    }
+
+    if (inputString == "r5\r\n") {
+      Serial3.println("ligando rele5");
+      digitalWrite(rele5, !digitalRead(rele5));
+    }
+    
+    if (inputString == "r6\r\n") {
+      Serial3.println("ligando rele6");
+      digitalWrite(rele6, !digitalRead(rele6));
+    }
+
+    
+     if (inputString == "r7\r\n") {
+      Serial3.println("ligando rele7");
+      digitalWrite(rele7, !digitalRead(rele7));
+    }
+
+    if (inputString == "r8\r\n") {
+      Serial3.println("ligando rele8");
+      digitalWrite(rele8, !digitalRead(rele8));
+    }
+    
+    if (inputString == "r9\r\n") {
+      Serial3.println("ligando rele9");
+      digitalWrite(rele9, !digitalRead(rele9));
+    }
+    
+    
+    Serial.print(inputString);
+    // clear the string:
+    inputString = "";
+    stringComplete = false;
+  }
+
+  if (Serial.available()) {
+    char inChar = Serial.read();
+    Serial.println(inChar);
+
+    inputString += inChar;
+    // if the incoming character is a newline, set a flag
+    // so the main loop can do something about it:
+    if (inChar == '\n') {
+      stringComplete = true;
+
+    }
+  }
+
+  // if (Serial3.available()) {
+  //   char inChar = Serial3.read();
+  //   Serial.println(inChar);
+
+  //   inputString += inChar;
+  //   // if the incoming character is a newline, set a flag
+  //   // so the main loop can do something about it:
+  //   if (inChar == '\n') {
+  //     stringComplete = true;
+
+  //   }
+  // }
+
 
 
 

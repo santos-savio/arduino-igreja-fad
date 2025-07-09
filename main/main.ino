@@ -9,6 +9,7 @@ byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0x03, 0xD4 };
 IPAddress ip(10, 31, 17, 14); // IP estático do Arduino
 // IPAddress ip(10, 31, 19, 14); // IP estático do Arduino para a Vlan da igreja
 EthernetServer server(23);       // Porta 23 (Telnet, padrão para Putty)
+EthernetServer web(80);          // Porta 80 (Para acessar via navegador)
 
 #define DHTPIN A12
 #define DHTTYPE DHT11   // DHT 11
@@ -19,6 +20,7 @@ DHT dht(DHTPIN, DHTTYPE);
 
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
+
 // Contadores para atraso no retorno da informação do sensor
 int count = 0;
 int count2 = 0;
@@ -169,9 +171,23 @@ void loop() {
   count2 = 0;
 }
 
+  if (Serial.available()) {
+    char inChar = Serial.read();
+    // Serial.println(inChar);
+    inputString += inChar;
+
+    // if the incoming character is a newline, set a flag
+    // so the main loop can do something about it:
+    if (inChar == '\n') {
+      stringComplete = true;
+    }
+  }
+
   if (stringComplete) {
 
-    if (inputString == "teste\r\n") {
+    inputString.trim();
+
+    if (inputString == "teste") {
       Serial.println("Ação ativada.\n");
     }
     
@@ -197,78 +213,64 @@ void loop() {
       
     }
     
-    if (inputString == "r0\r\n") {
+    if (inputString == "r0\r\n" || inputString == "r0") {
       Serial3.println("ligando rele0");
       digitalWrite(rele0, !digitalRead(rele0));
     }
 
-    if (inputString == "r1\r\n") {
+    if (inputString == "r1\r\n" || inputString == "r1") {
       Serial3.println("ligando rele1");
       digitalWrite(rele1, !digitalRead(rele1));
     }
 
-    if (inputString == "r2\r\n") {
+    if (inputString == "r2\r\n" || inputString == "r2") {
       Serial3.println("ligando rele2");
       digitalWrite(rele2, !digitalRead(rele2));
     }
     
 
-
-    if (inputString == "r3\r\n") {
+    if (inputString == "r3\r\n" || inputString == "r3") {
       Serial3.println("ligando rele3");
       digitalWrite(rele3, !digitalRead(rele3));
     }
 
     
-     if (inputString == "r4\r\n") {
+    if (inputString == "r4\r\n" || inputString == "r4") {
       Serial3.println("ligando rele4");
       digitalWrite(rele4, !digitalRead(rele4));
     }
 
-    if (inputString == "r5\r\n") {
+    if (inputString == "r5\r\n" || inputString == "r5") {
       Serial3.println("ligando rele5");
       digitalWrite(rele5, !digitalRead(rele5));
     }
     
-    if (inputString == "r6\r\n") {
+    if (inputString == "r6\r\n" || inputString == "r6") {
       Serial3.println("ligando rele6");
       digitalWrite(rele6, !digitalRead(rele6));
     }
 
     
-     if (inputString == "r7\r\n") {
+     if (inputString == "r7\r\n" || inputString == "r7") {
       Serial3.println("ligando rele7");
       digitalWrite(rele7, !digitalRead(rele7));
     }
 
-    if (inputString == "r8\r\n") {
+    if (inputString == "r8\r\n" || inputString == "r8") {
       Serial3.println("ligando rele8");
       digitalWrite(rele8, !digitalRead(rele8));
     }
     
-    if (inputString == "r9\r\n") {
+    if (inputString == "r9\r\n" || inputString == "r9") {
       Serial3.println("ligando rele9");
       digitalWrite(rele9, !digitalRead(rele9));
     }
     
     
-    Serial.print(inputString);
+    // Serial.print(inputString);
     // clear the string:
     inputString = "";
     stringComplete = false;
-  }
-
-  if (Serial.available()) {
-    char inChar = Serial.read();
-    Serial.println(inChar);
-
-    inputString += inChar;
-    // if the incoming character is a newline, set a flag
-    // so the main loop can do something about it:
-    if (inChar == '\n') {
-      stringComplete = true;
-
-    }
   }
 
   // if (Serial3.available()) {

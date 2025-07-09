@@ -7,6 +7,7 @@
 // Configuração Ethernet (ajuste para sua rede)
 byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0x03, 0xD4 };
 IPAddress ip(10, 31, 17, 14); // IP estático do Arduino
+// IPAddress ip(10, 31, 19, 14); // IP estático do Arduino para a Vlan da igreja
 EthernetServer server(23);       // Porta 23 (Telnet, padrão para Putty)
 
 #define DHTPIN A12
@@ -70,6 +71,7 @@ void setup() {
   server.begin();
 
   String ipAtual = "10.31.17.14:23"; // Atualize conforme necessário
+  // String ipAtual = "10.31.19.14:23"; // Ip para a Vlan da igreja
 
   Serial.println("\nIp atual: " + ipAtual);
   Serial.println("@savio.job \n");
@@ -286,20 +288,20 @@ void loop() {
 
 
   // for (int i = 0; i < 10; i++) {
-  //   // digitalWrite(relePins[i], HIGH); // Ativa pino [i]
+  //   digitalWrite(relePins[i], HIGH); // Ativa pino [i]
   //   digitalWrite(ledPin, HIGH);      // Ativa led 13
   //   Serial.print("Ligando pino ");   // Retorna no terminal
   //   Serial.println(relePins[i]);     // Retorna o número do pino no terminal
-  //   delay(3000);
+  //   delay(200);
   // }
-  // delay(2000);
+  // delay(200);
   // for (int i = 0; i < 10; i++) {
   //   digitalWrite(relePins[i], LOW);     // Desativa pino [i]
   //   digitalWrite(ledPin, LOW);          // Desativa led 13
   //   Serial.print("Desligando pino ");   // Retorna no terminal
   //   Serial.println(relePins[i]);          // Retorna o número do pino no terminal
   //   Serial.println("\n");
-  //   delay(2500);
+  //   delay(200);
   // }
   count++; // Incrementa o contador para correta leitura do sensor
 }

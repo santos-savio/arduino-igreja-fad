@@ -8,8 +8,7 @@
 byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0x03, 0xD4 };
 IPAddress ip(10, 31, 17, 14); // IP estático do Arduino
 // IPAddress ip(10, 31, 19, 14); // IP estático do Arduino para a Vlan da igreja
-EthernetServer server(23);       // Porta 23 (Telnet, padrão para Putty)
-EthernetServer web(80);          // Porta 80 (Para acessar via navegador)
+EthernetServer server(80);          // Porta 80 (Para acessar via navegador)
 
 #define DHTPIN A12
 #define DHTTYPE DHT11   // DHT 11
@@ -65,63 +64,15 @@ LiquidCrystal lcd(39, 38, 34, 35, 36, 37);
 int relePins[] = {22, 23, 24, 25, 26, 27, 28, 29, 42, 43};
 int ledPin = 13;
 
-int info_speed = 8;    // Velocidade da exibição das informações do sensor
+int info_speed = 3;    // Velocidade da exibição das informações do sensor
 
-void setup() {
-  Serial.begin(9600);      // Inicializa conexão serial
-  Ethernet.begin(mac, ip); // Inicializa Ethernet
-  server.begin();
-
-  String ipAtual = "10.31.17.14:23"; // Atualize conforme necessário
-  // String ipAtual = "10.31.19.14:23"; // Ip para a Vlan da igreja
-
-  Serial.println("\nIp atual: " + ipAtual);
-  Serial.println("@savio.job \n");
-
-  lcd.begin(16, 2);
-  lcd.setCursor(0, 0);
-  lcd.print(ipAtual);
-  lcd.setCursor(0, 1);
-  lcd.print("@savio.job");
-  // lcd.print("                "); // Limpa linha
-
-  dht.begin(); // Inicializa o sensor DHT11
-
-  // Define os pinos dos relés como saída
-  for (int i = 0; i < 10; i++) {
-    pinMode(relePins[i], OUTPUT);
-  }
-
-  pinMode(Discadora, OUTPUT); 
-  pinMode(Sirene, OUTPUT);
-
-  // Define os pinos dos contatos secos para leitura
-  pinMode(contatoseco8, INPUT);
-  pinMode(contatoseco7, INPUT);
-  pinMode(contatoseco6, INPUT);
-  pinMode(contatoseco5, INPUT);
-  pinMode(contatoseco4, INPUT);
-  pinMode(contatoseco3, INPUT);
-  pinMode(contatoseco2, INPUT);
-  pinMode(contatoseco1, INPUT);
-
-  // Inicia com os relés desligados
-    for (int i = 0; i < 10; i++) {
-      digitalWrite(relePins[i], LOW);
-    }
-
-  pinMode(ledPin, OUTPUT); // Inicializa Led 13
-  inputString.reserve(200);
+int ativaRele(int n) {
+  Serial.print("Função ativaRele() acionada, rele n: ");
+  Serial.println(n);
 }
-void loop() {
 
-  if (count == 30000) {
-    // Serial.println("Interação 30k");
-    count2++;
-  }
-
-  if (count2 == info_speed) {
-    // Lê o sensor e exibe as informações somente a cada 2000 iterações do loop, sem travar a execução
+void leituraSensor() {
+      // Lê o sensor e exibe as informações somente a cada 2000 iterações do loop, sem travar a execução
     int h = dht.readHumidity();
     int t = dht.readTemperature();
     int f = dht.readTemperature(true);
@@ -164,18 +115,172 @@ void loop() {
     lcd.setCursor(0, 1);
     lcd.print("@savio.job      ");
     tipoRetornoSensor = 0;
-    Serial.println("\n --------------------------------\n");
+    Serial.println("\n--------------------------------\n");
+  }
+}
+
+String estadoLed = "DESLIGADO";
+
+void handleWebserver() {
+  EthernetClient client = server.available(); // Verifica se há clientes
+   if (client) {
+    Serial.println("Novo cliente conectado!");
+    boolean currentLineIsBlank = true;  // Flag para verificar o fim da requisição HTTP
+    String request = "";               // Armazena a requisição do cliente
+
+    while (client.connected()) {
+      if (client.available()) {
+        char c = client.read();
+        request += c;  // Acumula os caracteres da requisição
+
+        // Fim da requisição HTTP (quando recebe uma linha em branco)
+        if (c == '\n' && currentLineIsBlank) {
+
+          stringComplete = true;
+          inputString = request;
+
+          // Processa a requisição
+          if (request.indexOf("GET /LED=ON") != -1) {
+            digitalWrite(ledPin, HIGH);
+            estadoLed = "LIGADO";
+          } else if (request.indexOf("GET /LED=OFF") != -1) {
+            digitalWrite(ledPin, LOW);
+            estadoLed = "DESLIGADO";
+          } else if (request.indexOf("GET /ativaTudo") != -1) {
+            ativaTudo();
+          } else if (request.indexOf("GET /desativaTudo") != -1) {
+            desativaTudo();
+          }
+
+          // Resposta HTTP padrão
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-Type: text/html");
+          client.println("Connection: close");
+          client.println();  // Fim dos cabeçalhos
+
+          // Página HTML simples
+          client.println("<!DOCTYPE html>");
+          client.println("<html>");
+          client.println("<head><title>Arduino Fad</title></head>");
+          client.println("<body>");
+          client.println("<h1>Controle LUZ</h1>");
+          client.println("<p>Estado do LED: " + estadoLed + "</p>");
+          client.println("<p><a href=\"/LED=ON\"><button>Ligar Led</button></a></p>");
+          client.println("<p><a href=\"/LED=OFF\"><button>Desligar Led</button></a></p>");
+          client.println("<p><a href=\"/ativaTudo\"><button>Ativar todos reles</button></a></p>");
+          client.println("<p><a href=\"/r1\"><button></button></a></p>");
+          client.println("<p><a href=\"/r2\"><button></button></a></p>");
+          client.println("<p><a href=\"/r3\"><button></button></a></p>");
+          client.println("<p><a href=\"/r4\"><button></button></a></p>");
+          client.println("<p><a href=\"/r5\"><button></button></a></p>");
+          client.println("<p><a href=\"/r6\"><button></button></a></p>");
+          client.println("<p><a href=\"/r7\"><button></button></a></p>");
+          client.println("<p><a href=\"/r8\"><button></button></a></p>");
+          client.println("<p><a href=\"/r9\"><button></button></a></p>");
+          client.println("<p><a href=\"/r10\"><button></button></a></p>");
+          client.println("<p><a href=\"/r11\"><button></button></a></p>");
+          client.println("<p><a href=\"/desativaTudo\"><button>Desativar todos reles</button></a></p>");
+          client.println("</body>");
+          client.println("</html>");
+          break;  // Encerra o loop
+        }
+
+        if (c == '\n') {
+          currentLineIsBlank = true;
+        } else if (c != '\r') {
+          currentLineIsBlank = false;
+        }
+      }
+    }
+
+    delay(1);       // Tempo para o cliente receber os dados
+    client.stop();  // Fecha a conexão
+    Serial.println("Cliente desconectado.");
+    Serial.println("Requisição recebida: " + request);
+  }
+}
+
+void ativaTudo() {
+    for (int i = 0; i < 10; i++) {
+      digitalWrite(relePins[i], HIGH); // Ativa pino [i]
+      Serial.print("Ligando relé ");   // Retorna no terminal
+      Serial.println(relePins[i]);     // Retorna o número do pino no terminal
+    }
+}
+
+void desativaTudo() {
+    for (int i = 0; i < 10; i++) {
+      digitalWrite(relePins[i], LOW);     // Desativa pino [i]
+      Serial.print("Desligando relé ");   // Retorna no terminal
+      Serial.println(relePins[i]);          // Retorna o número do pino no terminal
+      Serial.println("\n");
+    }
+}
+
+void controleRele(int n) {
+      Serial3.print("Estado do rele ");
+      Serial3.println(n);
+      digitalWrite(n, !digitalRead(n));
+    }
+
+void setup() {
+  Serial.begin(9600);      // Inicializa conexão serial
+  Ethernet.begin(mac, ip); // Inicializa Ethernet
+  server.begin();             // Inicializa servidor web
+
+  String ipAtual = "10.31.17.14:23"; // Atualize com o ip real
+  // String ipAtual = "10.31.19.14:23"; // Ip para a Vlan da igreja
+
+  Serial.println("\nIp atual: " + ipAtual);
+  Serial.println("@savio.job \n");
+
+  lcd.begin(16, 2);
+  lcd.setCursor(0, 0);
+  lcd.print(ipAtual);
+  lcd.setCursor(0, 1);
+  lcd.print("@savio.job");
+  // lcd.print("                "); // Limpa linha
+
+  dht.begin(); // Inicializa o sensor DHT11
+
+  // Define os pinos dos relés como saída
+  for (int i = 0; i < 10; i++) {
+    pinMode(relePins[i], OUTPUT);
   }
 
-  count = 0;
-  count2 = 0;
+  pinMode(Discadora, OUTPUT); 
+  pinMode(Sirene, OUTPUT);
+
+  // Define os pinos dos contatos secos para leitura
+  pinMode(contatoseco8, INPUT);
+  pinMode(contatoseco7, INPUT);
+  pinMode(contatoseco6, INPUT);
+  pinMode(contatoseco5, INPUT);
+  pinMode(contatoseco4, INPUT);
+  pinMode(contatoseco3, INPUT);
+  pinMode(contatoseco2, INPUT);
+  pinMode(contatoseco1, INPUT);
+
+  pinMode(ledPin, OUTPUT); // Inicializa Led 13
+  inputString.reserve(200);
+
 }
+void loop() {
+  handleWebserver();    // Inicializa o servidor web
+
+  if (count == 30000) {
+    count2++;
+  }
+
+  if (count2 == info_speed) {
+    leituraSensor();
+    count  = 0;
+    count2 = 0;
+    }
 
   if (Serial.available()) {
     char inChar = Serial.read();
-    // Serial.println(inChar);
     inputString += inChar;
-
     // if the incoming character is a newline, set a flag
     // so the main loop can do something about it:
     if (inChar == '\n') {
@@ -185,13 +290,20 @@ void loop() {
 
   if (stringComplete) {
 
-    inputString.trim();
+    if (inputString == "teste\r\n" || inputString == "teste") {
+      Serial.println("Teste executado.\n");
+      ativaRele(1);
+    }
 
-    if (inputString == "teste") {
-      Serial.println("Ação ativada.\n");
+    if (inputString == "f1") {
+      ativaTudo();
+    }
+
+    if (inputString == "f2") {
+      desativaTudo();
     }
     
-      if (inputString == "cseco\r\n") {
+    if (inputString == "cseco\r\n") {
       Serial3.print("Estado dos contatos Secos :");  
       Serial3.print(digitalRead(contatoseco1));
       Serial3.print(digitalRead(contatoseco2));
@@ -205,7 +317,7 @@ void loop() {
       
     }
     
-     if (inputString == "temp\r\n") {
+    if (inputString == "temp\r\n" || inputString == "temp") {
       Serial3.print("Temperatura: ");
       Serial3.println(dht.readTemperature());
       Serial3.print("Umidade: ");
@@ -219,7 +331,7 @@ void loop() {
     }
 
     if (inputString == "r1\r\n" || inputString == "r1") {
-      Serial3.println("ligando rele1");
+      Serial.println("ligando rele1");
       digitalWrite(rele1, !digitalRead(rele1));
     }
 
@@ -251,7 +363,7 @@ void loop() {
     }
 
     
-     if (inputString == "r7\r\n" || inputString == "r7") {
+    if (inputString == "r7\r\n" || inputString == "r7") {
       Serial3.println("ligando rele7");
       digitalWrite(rele7, !digitalRead(rele7));
     }
@@ -273,37 +385,5 @@ void loop() {
     stringComplete = false;
   }
 
-  // if (Serial3.available()) {
-  //   char inChar = Serial3.read();
-  //   Serial.println(inChar);
-
-  //   inputString += inChar;
-  //   // if the incoming character is a newline, set a flag
-  //   // so the main loop can do something about it:
-  //   if (inChar == '\n') {
-  //     stringComplete = true;
-
-  //   }
-  // }
-
-
-
-
-  // for (int i = 0; i < 10; i++) {
-  //   digitalWrite(relePins[i], HIGH); // Ativa pino [i]
-  //   digitalWrite(ledPin, HIGH);      // Ativa led 13
-  //   Serial.print("Ligando pino ");   // Retorna no terminal
-  //   Serial.println(relePins[i]);     // Retorna o número do pino no terminal
-  //   delay(200);
-  // }
-  // delay(200);
-  // for (int i = 0; i < 10; i++) {
-  //   digitalWrite(relePins[i], LOW);     // Desativa pino [i]
-  //   digitalWrite(ledPin, LOW);          // Desativa led 13
-  //   Serial.print("Desligando pino ");   // Retorna no terminal
-  //   Serial.println(relePins[i]);          // Retorna o número do pino no terminal
-  //   Serial.println("\n");
-  //   delay(200);
-  // }
   count++; // Incrementa o contador para correta leitura do sensor
 }

@@ -56,6 +56,7 @@ const int contatoseco3 = 46;    // the number of the drybutton pin
 const int contatoseco2 = 45;    // the number of the drybutton pin
 const int contatoseco1 = 44;    // the number of the drybutton pin
 
+boolean statusRele[9];
 
 const int Sirene = 33;    //Saida de 12 volts Até 1,5A
 const int Discadora = 32;  //Saida de 12 volts até 1A
@@ -121,6 +122,30 @@ void leituraSensor() {
 
 String estadoLed = "DESLIGADO";
 
+
+void ativaTudo() {
+    for (int i = 0; i < 10; i++) {
+      digitalWrite(relePins[i], HIGH); // Ativa pino [i]
+      Serial.print("Ligando relé ");   // Retorna no terminal
+      Serial.println(i+1);     // Retorna o número do pino no terminal
+    }
+}
+
+void desativaTudo() {
+    for (int i = 0; i < 10; i++) {
+      digitalWrite(relePins[i], LOW);     // Desativa pino [i]
+      Serial.print("Desligando relé ");   // Retorna no terminal
+      Serial.println(relePins[i]);          // Retorna o número do pino no terminal
+      Serial.println("\n");
+    }
+}
+
+void controleRele(int n) {
+    Serial3.print("Estado do rele ");
+    Serial3.println(n);
+    digitalWrite(relePins[n], !digitalRead(relePins[n]));
+}
+
 void handleWebserver() {
   EthernetClient client = server.available(); // Verifica se há clientes
    if (client) {
@@ -136,6 +161,8 @@ void handleWebserver() {
         // Fim da requisição HTTP (quando recebe uma linha em branco)
         if (c == '\n' && currentLineIsBlank) {
 
+          // client.println("Location: /");  // redireciona para a raiz do servidor
+
           stringComplete = true;
           inputString = request;
 
@@ -150,6 +177,26 @@ void handleWebserver() {
             ativaTudo();
           } else if (request.indexOf("GET /desativaTudo") != -1) {
             desativaTudo();
+          } else if (request.indexOf("GET /r0") != -1) {
+            controleRele(0);
+          } else if (request.indexOf("GET /r1") != -1) {
+            controleRele(1);
+          } else if (request.indexOf("GET /r2") != -1) {
+            controleRele(2);
+          } else if (request.indexOf("GET /r3") != -1) {
+            controleRele(3);
+          } else if (request.indexOf("GET /r4") != -1) {
+            controleRele(4);
+          } else if (request.indexOf("GET /r5") != -1) {
+            controleRele(5);
+          } else if (request.indexOf("GET /r6") != -1) {
+            controleRele(6);
+          } else if (request.indexOf("GET /r7") != -1) {
+            controleRele(7);
+          } else if (request.indexOf("GET /r8") != -1) {
+            controleRele(8);
+          } else if (request.indexOf("GET /r9") != -1) {
+            controleRele(9);
           }
 
           // Resposta HTTP padrão
@@ -164,25 +211,22 @@ void handleWebserver() {
           client.println("<head><title>Arduino Fad</title></head>");
           client.println("<body>");
           client.println("<h1>Controle LUZ</h1>");
-          client.println("<p>Estado do LED: " + estadoLed + "</p>");
-          client.println("<p><a href=\"/LED=ON\"><button>Ligar Led</button></a></p>");
-          client.println("<p><a href=\"/LED=OFF\"><button>Desligar Led</button></a></p>");
+          client.println("<p><a href=\"/\"><button>Atualizar</button></a></p>");
           client.println("<p><a href=\"/ativaTudo\"><button>Ativar todos reles</button></a></p>");
-          client.println("<p><a href=\"/r1\"><button></button></a></p>");
-          client.println("<p><a href=\"/r2\"><button></button></a></p>");
-          client.println("<p><a href=\"/r3\"><button></button></a></p>");
-          client.println("<p><a href=\"/r4\"><button></button></a></p>");
-          client.println("<p><a href=\"/r5\"><button></button></a></p>");
-          client.println("<p><a href=\"/r6\"><button></button></a></p>");
-          client.println("<p><a href=\"/r7\"><button></button></a></p>");
-          client.println("<p><a href=\"/r8\"><button></button></a></p>");
-          client.println("<p><a href=\"/r9\"><button></button></a></p>");
-          client.println("<p><a href=\"/r10\"><button></button></a></p>");
-          client.println("<p><a href=\"/r11\"><button></button></a></p>");
           client.println("<p><a href=\"/desativaTudo\"><button>Desativar todos reles</button></a></p>");
+          client.println("<p><a href=\"/r0\"><button>Rele 1</button></a>"+ String(statusRele[0] ? "Ligado" : " Desligado" )+"</p>");
+          client.println("<p><a href=\"/r1\"><button>Rele 2</button></a>"+ String(statusRele[1] ? "Ligado" : " Desligado" )+"</p>");
+          client.println("<p><a href=\"/r2\"><button>Rele 3</button></a>"+ String(statusRele[2] ? "Ligado" : " Desligado" )+"</p>");
+          client.println("<p><a href=\"/r3\"><button>Rele 4</button></a>"+ String(statusRele[3] ? "Ligado" : " Desligado" )+"</p>");
+          client.println("<p><a href=\"/r4\"><button>Rele 5</button></a>"+ String(statusRele[4] ? "Ligado" : " Desligado" )+"</p>");
+          client.println("<p><a href=\"/r5\"><button>Rele 6</button></a>"+ String(statusRele[5] ? "Ligado" : " Desligado" )+"</p>");
+          client.println("<p><a href=\"/r6\"><button>Rele 7</button></a>"+ String(statusRele[6] ? "Ligado" : " Desligado" )+"</p>");
+          client.println("<p><a href=\"/r7\"><button>Rele 8</button></a>"+ String(statusRele[7] ? "Ligado" : " Desligado" )+"</p>");
+          client.println("<p><a href=\"/r8\"><button>Rele 9</button></a>"+ String(statusRele[8] ? "Ligado" : " Desligado" )+"</p>");
+          client.println("<p><a href=\"/r9\"><button>Rele 10</button></a>"+ String(statusRele[9] ? "Ligado" : " Desligado" )+"</p>");
           client.println("</body>");
           client.println("</html>");
-          break;  // Encerra o loop
+          // break;  // Encerra o loop
         }
 
         if (c == '\n') {
@@ -194,34 +238,18 @@ void handleWebserver() {
     }
 
     delay(1);       // Tempo para o cliente receber os dados
+    // client.println("Location: /");  // redireciona para a raiz do servidor
     client.stop();  // Fecha a conexão
     Serial.println("Cliente desconectado.");
     Serial.println("Requisição recebida: " + request);
   }
 }
 
-void ativaTudo() {
-    for (int i = 0; i < 10; i++) {
-      digitalWrite(relePins[i], HIGH); // Ativa pino [i]
-      Serial.print("Ligando relé ");   // Retorna no terminal
-      Serial.println(relePins[i]);     // Retorna o número do pino no terminal
-    }
+void statusReles () {
+  for (int i = 0; i < 10; i++) {
+    statusRele[i] = digitalRead(relePins[i]);
+  }
 }
-
-void desativaTudo() {
-    for (int i = 0; i < 10; i++) {
-      digitalWrite(relePins[i], LOW);     // Desativa pino [i]
-      Serial.print("Desligando relé ");   // Retorna no terminal
-      Serial.println(relePins[i]);          // Retorna o número do pino no terminal
-      Serial.println("\n");
-    }
-}
-
-void controleRele(int n) {
-      Serial3.print("Estado do rele ");
-      Serial3.println(n);
-      digitalWrite(n, !digitalRead(n));
-    }
 
 void setup() {
   Serial.begin(9600);      // Inicializa conexão serial
@@ -263,16 +291,20 @@ void setup() {
 
   pinMode(ledPin, OUTPUT); // Inicializa Led 13
   inputString.reserve(200);
-
 }
+
 void loop() {
   handleWebserver();    // Inicializa o servidor web
 
   if (count == 30000) {
+    statusReles();
     count2++;
   }
 
   if (count2 == info_speed) {
+      for (int i = 0; i < 10; i++) {
+       Serial.println(statusRele[i]);
+      }
     leituraSensor();
     count  = 0;
     count2 = 0;

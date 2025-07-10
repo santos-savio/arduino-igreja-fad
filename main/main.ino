@@ -56,7 +56,7 @@ const int contatoseco3 = 46;    // the number of the drybutton pin
 const int contatoseco2 = 45;    // the number of the drybutton pin
 const int contatoseco1 = 44;    // the number of the drybutton pin
 
-boolean statusRele[9];
+boolean statusRele[] = {0,1,2,3,4,5,6,7,8,9};
 
 const int Sirene = 33;    //Saida de 12 volts Até 1,5A
 const int Discadora = 32;  //Saida de 12 volts até 1A
@@ -65,7 +65,7 @@ LiquidCrystal lcd(39, 38, 34, 35, 36, 37);
 int relePins[] = {22, 23, 24, 25, 26, 27, 28, 29, 42, 43};
 int ledPin = 13;
 
-int info_speed = 3;    // Velocidade da exibição das informações do sensor
+int info_speed = 8;    // Velocidade da exibição das informações do sensor
 
 int ativaRele(int n) {
   Serial.print("Função ativaRele() acionada, rele n: ");
@@ -120,8 +120,6 @@ void leituraSensor() {
   }
 }
 
-String estadoLed = "DESLIGADO";
-
 
 void ativaTudo() {
     for (int i = 0; i < 10; i++) {
@@ -153,13 +151,18 @@ void handleWebserver() {
     boolean currentLineIsBlank = true;  // Flag para verificar o fim da requisição HTTP
     String request = "";               // Armazena a requisição do cliente
 
-    while (client.connected()) {
-      if (client.available()) {
+      while (client.available()) {
         char c = client.read();
         request += c;  // Acumula os caracteres da requisição
 
-        // Fim da requisição HTTP (quando recebe uma linha em branco)
-        if (c == '\n' && currentLineIsBlank) {
+          // Fim da requisição HTTP (quando recebe uma linha em branco)
+        if (c == '\n') {
+          if (request.endsWith("\r\n\r\n")) {
+            currentLineIsBlank = true;
+            break;
+          }
+        }
+      }
 
           // client.println("Location: /");  // redireciona para a raiz do servidor
 
@@ -167,13 +170,7 @@ void handleWebserver() {
           inputString = request;
 
           // Processa a requisição
-          if (request.indexOf("GET /LED=ON") != -1) {
-            digitalWrite(ledPin, HIGH);
-            estadoLed = "LIGADO";
-          } else if (request.indexOf("GET /LED=OFF") != -1) {
-            digitalWrite(ledPin, LOW);
-            estadoLed = "DESLIGADO";
-          } else if (request.indexOf("GET /ativaTudo") != -1) {
+          if (request.indexOf("GET /ativaTudo") != -1) {
             ativaTudo();
           } else if (request.indexOf("GET /desativaTudo") != -1) {
             desativaTudo();
@@ -226,22 +223,13 @@ void handleWebserver() {
           client.println("<p><a href=\"/r9\"><button>Rele 10</button></a>"+ String(statusRele[9] ? "Ligado" : " Desligado" )+"</p>");
           client.println("</body>");
           client.println("</html>");
-          // break;  // Encerra o loop
-        }
-
-        if (c == '\n') {
-          currentLineIsBlank = true;
-        } else if (c != '\r') {
-          currentLineIsBlank = false;
-        }
-      }
-    }
 
     delay(1);       // Tempo para o cliente receber os dados
     // client.println("Location: /");  // redireciona para a raiz do servidor
     client.stop();  // Fecha a conexão
     Serial.println("Cliente desconectado.");
     Serial.println("Requisição recebida: " + request);
+    loop();
   }
 }
 
@@ -296,17 +284,18 @@ void setup() {
 void loop() {
   handleWebserver();    // Inicializa o servidor web
 
-  if (count == 30000) {
+  if (count == 10000) {
     statusReles();
     count2++;
+    count = 0;
   }
 
   if (count2 == info_speed) {
       for (int i = 0; i < 10; i++) {
-       Serial.println(statusRele[i]);
+        // String resultadoStatusRele = "Status rele " + String(i) + ": "+ String(statusRele[i] ? "Ligado" : "Desligado");
+        // Serial.println(resultadoStatusRele);
       }
     leituraSensor();
-    count  = 0;
     count2 = 0;
     }
 

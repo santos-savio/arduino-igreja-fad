@@ -93,19 +93,19 @@ void leituraSensor() {
   String heatIndexStr = "Sen. term.: " + String(hic) + "C       ";
 
   // Exibindo as strings completas
-  if (tipoRetornoSensor == 0) {
+  if (tipoRetornoSensor == 0) {         // Exibe a humidade
     Serial.println(humidityStr);
     lcd.setCursor(0, 1);
     lcd.print(humidityStr);
     tipoRetornoSensor++;
 
-  } else if (tipoRetornoSensor == 1) {
+  } else if (tipoRetornoSensor == 1) {  // Exibe a temperatura
     Serial.println(tempStr);
     lcd.setCursor(0, 1);
     lcd.print(tempStr);
     tipoRetornoSensor++;
 
-  } else if (tipoRetornoSensor == 2) {
+  } else if (tipoRetornoSensor == 2) {  // Exibe a sensação térmica
     Serial.println(heatIndexStr);
     lcd.setCursor(0, 1);
     lcd.print(heatIndexStr);
@@ -113,7 +113,7 @@ void leituraSensor() {
   }
 
   else {
-    lcd.setCursor(0, 1);
+    lcd.setCursor(0, 1);              // Exibe @savio.job
     lcd.print("@savio.job      ");
     tipoRetornoSensor = 0;
     Serial.println("\n--------------------------------\n");
@@ -170,29 +170,50 @@ void handleWebserver() {
           inputString = request;
 
           // Processa a requisição
-          if (request.indexOf("GET /ativaTudo") != -1) {
+          if (request.indexOf("GET /status") != -1) {
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-Type: application/json");
+            client.println("Connection: close");
+            client.println();
+            
+              // Retorna o array com os status
+            client.print("{\"dados\":[");
+            for (int i = 0; i < 10; i++) {
+            // statusRele[i] = digitalRead(relePins[i]);
+            client.print(digitalRead(relePins[i]));
+            Serial.print("Status rele ");
+            Serial.print(i);
+            Serial.print(digitalRead(relePins[i]));
+            if (i < 9) client.print(",");
+          }
+          client.println("]}");
+          client.stop();
+          Serial.println("Função de status executada.");
+          return; // Garante que ele não continue e mande o HTML depoi
+
+          } else if (request.indexOf("POST /ativaTudo") != -1) {
             ativaTudo();
-          } else if (request.indexOf("GET /desativaTudo") != -1) {
+          } else if (request.indexOf("POST /desativaTudo") != -1) {
             desativaTudo();
-          } else if (request.indexOf("GET /r0") != -1) {
+          } else if (request.indexOf("POST /r0") != -1) {
             controleRele(0);
-          } else if (request.indexOf("GET /r1") != -1) {
+          } else if (request.indexOf("POST /r1") != -1) {
             controleRele(1);
-          } else if (request.indexOf("GET /r2") != -1) {
+          } else if (request.indexOf("POST /r2") != -1) {
             controleRele(2);
-          } else if (request.indexOf("GET /r3") != -1) {
+          } else if (request.indexOf("POST /r3") != -1) {
             controleRele(3);
-          } else if (request.indexOf("GET /r4") != -1) {
+          } else if (request.indexOf("POST /r4") != -1) {
             controleRele(4);
-          } else if (request.indexOf("GET /r5") != -1) {
+          } else if (request.indexOf("POST /r5") != -1) {
             controleRele(5);
-          } else if (request.indexOf("GET /r6") != -1) {
+          } else if (request.indexOf("POST /r6") != -1) {
             controleRele(6);
-          } else if (request.indexOf("GET /r7") != -1) {
+          } else if (request.indexOf("POST /r7") != -1) {
             controleRele(7);
-          } else if (request.indexOf("GET /r8") != -1) {
+          } else if (request.indexOf("POST /r8") != -1) {
             controleRele(8);
-          } else if (request.indexOf("GET /r9") != -1) {
+          } else if (request.indexOf("POST /r9") != -1) {
             controleRele(9);
           }
 
@@ -205,22 +226,61 @@ void handleWebserver() {
           // Página HTML simples
           client.println("<!DOCTYPE html>");
           client.println("<html>");
-          client.println("<head><title>Arduino Fad</title></head>");
+          client.println("<head><title>Arduino Fad</title><meta charset=\"UTF-8\"></head>");
           client.println("<body>");
           client.println("<h1>Controle LUZ</h1>");
-          client.println("<p><a href=\"/\"><button>Atualizar</button></a></p>");
-          client.println("<p><a href=\"/ativaTudo\"><button>Ativar todos reles</button></a></p>");
-          client.println("<p><a href=\"/desativaTudo\"><button>Desativar todos reles</button></a></p>");
-          client.println("<p><a href=\"/r0\"><button>Rele 1</button></a>"+ String(statusRele[0] ? "Ligado" : " Desligado" )+"</p>");
-          client.println("<p><a href=\"/r1\"><button>Rele 2</button></a>"+ String(statusRele[1] ? "Ligado" : " Desligado" )+"</p>");
-          client.println("<p><a href=\"/r2\"><button>Rele 3</button></a>"+ String(statusRele[2] ? "Ligado" : " Desligado" )+"</p>");
-          client.println("<p><a href=\"/r3\"><button>Rele 4</button></a>"+ String(statusRele[3] ? "Ligado" : " Desligado" )+"</p>");
-          client.println("<p><a href=\"/r4\"><button>Rele 5</button></a>"+ String(statusRele[4] ? "Ligado" : " Desligado" )+"</p>");
-          client.println("<p><a href=\"/r5\"><button>Rele 6</button></a>"+ String(statusRele[5] ? "Ligado" : " Desligado" )+"</p>");
-          client.println("<p><a href=\"/r6\"><button>Rele 7</button></a>"+ String(statusRele[6] ? "Ligado" : " Desligado" )+"</p>");
-          client.println("<p><a href=\"/r7\"><button>Rele 8</button></a>"+ String(statusRele[7] ? "Ligado" : " Desligado" )+"</p>");
-          client.println("<p><a href=\"/r8\"><button>Rele 9</button></a>"+ String(statusRele[8] ? "Ligado" : " Desligado" )+"</p>");
-          client.println("<p><a href=\"/r9\"><button>Rele 10</button></a>"+ String(statusRele[9] ? "Ligado" : " Desligado" )+"</p>");
+
+          // client.println("<p><a href=\"/\"><button>Atualizar</button></a></p>");
+          client.println("<p><button data-comando='/ativaTudo' onclick='enviarComando(this)'>Ativar todos os reles</button></p>");
+          client.println("<p><button data-comando='/desativaTudo' onclick='enviarComando(this)'>Desativar todos os reles</button></p>");
+          // client.println("<p><button data-comando='/r0' onclick='enviarComando(this)'>Relé 1</button>"+ String(statusRele[0] ? " Ligado" : " Desligado" )+"</p>");
+
+          client.println("<div><p><button data-comando='/r0' onclick='enviarComando(this)'>Relé 1</button><span id=\"status1\">  Carregando...</span></p></div>");
+          client.println("<div><p><button data-comando='/r1' onclick='enviarComando(this)'>Relé 2</button><span id=\"status2\">  Carregando...</span></p></div>");
+          client.println("<div><p><button data-comando='/r2' onclick='enviarComando(this)'>Relé 3</button><span id=\"status3\">  Carregando...</span></p></div>");
+          client.println("<div><p><button data-comando='/r3' onclick='enviarComando(this)'>Relé 4</button><span id=\"status4\">  Carregando...</span></p></div>");
+          client.println("<div><p><button data-comando='/r4' onclick='enviarComando(this)'>Relé 5</button><span id=\"status5\">  Carregando...</span></p></div>");
+          client.println("<div><p><button data-comando='/r5' onclick='enviarComando(this)'>Relé 6</button><span id=\"status6\">  Carregando...</span></p></div>");
+          client.println("<div><p><button data-comando='/r6' onclick='enviarComando(this)'>Relé 7</button><span id=\"status7\">  Carregando...</span></p></div>");
+          client.println("<div><p><button data-comando='/r7' onclick='enviarComando(this)'>Relé 8</button><span id=\"status8\">  Carregando...</span></p></div>");
+          client.println("<div><p><button data-comando='/r8' onclick='enviarComando(this)'>Relé 9</button><span id=\"status9\">  Carregando...</span></p></div>");
+          client.println("<div><p><button data-comando='/r9' onclick='enviarComando(this)'>Relé 10</button><span id=\"status10\">  Carregando...</span></p></div>");
+
+          client.println("<script>");
+          client.println("function enviarComando(botao) {");
+          client.println("  const url = botao.getAttribute('data-comando');");
+          client.println("  fetch(url, { method: 'POST' })");
+          client.println("    .then(response => {");
+          client.println("      if (!response.ok) throw new Error('Erro no servidor');");
+          client.println("      return response.text();");
+          client.println("    })");
+          client.println("    .then(data => {");
+          client.println("      console.log(`Comando enviado com sucesso para ${url}`);");
+          client.println("    })");
+          client.println("    .catch(error => {");
+          client.println("      alert('Erro ao executar o comando.');");
+          client.println("    });");
+          client.println("}");
+          // client.println("</script>");
+
+          // client.println("<script>");
+          client.println("function atualizarStatus() {");
+          client.println("  fetch('/status')");
+          client.println("    .then(response => response.json())");
+          client.println("    .then(data => {");
+          client.println("      const estados = data.dados;");  // Exemplo: ["1", "1", "0"]
+          client.println("      for (let i = 0; i < estados.length; i++) {");
+          client.println("        const statusTexto = estados[i] == \"1\" ? \"  Ligado\" : \"  Desligado\";");
+          client.println("        document.getElementById(`status${i+1}`).textContent = `${statusTexto}`;");
+          client.println("      }");
+          client.println("    })");
+          client.println("    .catch(error => console.error(\"Erro ao atualizar status:\", error));");
+          client.println("}");
+
+          client.println("setInterval(atualizarStatus, 1000);  // Atualiza a cada 1 segundo");
+          client.println("window.onload = atualizarStatus;");
+          client.println("</script>");
+
           client.println("</body>");
           client.println("</html>");
 
@@ -233,11 +293,6 @@ void handleWebserver() {
   }
 }
 
-void statusReles () {
-  for (int i = 0; i < 10; i++) {
-    statusRele[i] = digitalRead(relePins[i]);
-  }
-}
 
 void setup() {
   Serial.begin(9600);      // Inicializa conexão serial
@@ -285,7 +340,6 @@ void loop() {
   handleWebserver();    // Inicializa o servidor web
 
   if (count == 10000) {
-    statusReles();
     count2++;
     count = 0;
   }
@@ -400,7 +454,7 @@ void loop() {
     }
     
     
-    // Serial.print(inputString);
+    Serial.print(inputString);
     // clear the string:
     inputString = "";
     stringComplete = false;
